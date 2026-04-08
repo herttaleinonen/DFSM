@@ -49,7 +49,7 @@ if __name__ == "__main__":
         )
     
 
-    DO_FIT = False  # <-- change to True only when re-fitting the two free parameters
+    DO_FIT = True  # <-- change to True only when re-fitting the two free parameters
 
     if DO_FIT:
         # parameter grid size 
