@@ -1,5 +1,10 @@
+# The dynamic search task
+
 Set of experiments developed to study visual search in dynamic environments.
-Running the experiment
+
+![alt text](https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%201.gif)
+
+# Running the experiment
 
 Requirements:
 
