@@ -4,7 +4,7 @@
 
 # Requirements
 Python 3.10 or newer is required. 
-To install, clone the DFSM git to your machine.
+To install, copy the "DFSM" -folder to your machine.
 
 # Running 
 
