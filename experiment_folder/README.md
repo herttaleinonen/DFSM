@@ -1,8 +1,9 @@
-# The dynamic search task
+# The experimental setup
 
 Set of experiments developed to study visual search in dynamic environments.
 
-![alt text](https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%201.gif)
+![alt text](https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%201.png)
+![alt text](https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%202.png)
 
 # Running the experiment
 
