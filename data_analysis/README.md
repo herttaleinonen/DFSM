@@ -9,5 +9,5 @@ long.csv
 ```
 Dynamic_visual_environmetns/DFSM/data.
 
-Complete non-aggregated data set can be viewed in  [Dynamic_visual_environments/DFSM/data](https://pages.github.com/](https://github.com/herttaleinonen/Dynamic_visual_environments/tree/main/DFSM/data).
+Complete non-aggregated data set can be viewed in  [Dynamic_visual_environments/DFSM/data](https://github.com/herttaleinonen/Dynamic_visual_environments/tree/main/DFSM/data).
 
