@@ -3,8 +3,8 @@
 <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/DFSM/images/DFSM.png" height="548" width="548" ></a>
 
 # Requirements
-Python 3.10 or newer is required. 
-To install, copy the "DFSM" -folder to your machine.
+- Python 3.10 or newer is required. 
+- To install, copy the "DFSM" -folder to your machine.
 
 # Running 
 
