@@ -2,7 +2,7 @@
 
 Set of experiments developed to study visual search in dynamic environments.
 
-**a.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%201.png" height="448" width="448" ></a> **b.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experiment_folder/images/Picture%202.png" height="348" width="348" ></a>
+**a.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experimental_setup/images/Picture%201.png" height="448" width="448" ></a> **b.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experimental_setup/images/Picture%202.png" height="348" width="348" ></a>
 
 # Running the experiment
 
