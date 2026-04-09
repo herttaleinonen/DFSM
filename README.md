@@ -4,6 +4,8 @@
 
 # Requirements
 Python 3.10 or newer is required. <br/>
+
+# Installation
 To install, copy the "DFSM" -folder to your machine.
 
 # Running 
