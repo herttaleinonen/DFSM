@@ -6,5 +6,5 @@ long.csv
 ```
 All .md scripts can be ran on R-Studio to recreate paper figures. <br/>
 
-Full data set can be viewed in Dynamic_visual_environmetns/DFSM/data
+Full data set can be viewed in Dynamic_visual_environmetns/DFSM/data.
 
