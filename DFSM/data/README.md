@@ -34,10 +34,10 @@ Contains all participants’ (N = 16) behavioural data (CSV files) and eye movem
   Number of Gabor stimuli (typically 10).
 
 - **Gabor Positions**  
-  Positions of all Gabors over time. Stored as a list of positions at each time step (shape: time × items × 2).
+  Positions of all Gabors over time. Stored as a list of positions at each time step.
 
 - **Target Trajectory**  
-  Positions of the target Gabor over time (time × 2). Empty if target is absent.
+  Positions of the target Gabor over time. Empty if target is absent.
 
 - **Speed (px/s)**  
   Empirically recorded stimulus speed (in pixels per second).
