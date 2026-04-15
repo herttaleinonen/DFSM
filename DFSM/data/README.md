@@ -140,7 +140,7 @@ All participants’ (N=16) behavioural data from the visibility task (CSV files)
   Stimulus category (1 = target, 0 = distractor).
 
 - **x_start_deg, y_start_deg**  
-  Gabor position at stimulus onset, in Cartesian coordinates (degrees of visual angle relative to fixation).
+  Gabor position at stimulus onset, in Cartesian coordinates (degrees of visual angle).
 
 - **x_end_deg, y_end_deg**  
   Gabor position at the end of the motion interval (degrees of visual angle).
