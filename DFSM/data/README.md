@@ -57,9 +57,7 @@ Contains all participants’ (N = 16) behavioural data (CSV files) and eye movem
 
 Raw eye-tracking data recorded with EyeLink during the visual search task.
 
-These files are converted from `.EDF` format and contain time-stamped eye movement events, calibration information, and experiment messages.
-
-ASC files include:
+These files are converted from `.EDF` format and contain time-stamped eye movement events, calibration information, and experiment messages. The ASC files include:
 
 - **Calibration and validation logs**  
   Information about calibration quality (e.g., average error in degrees, gain, offsets).
@@ -87,7 +85,7 @@ ASC files include:
 - **SBLINK / EBLINK events (blinks)**  
   Blink start and end times.
 
-## Coordinate system
+### Coordinate system
 
 - Gaze positions (`x`, `y`) are in **screen pixel coordinates**.  
 - Origin is the **top-left corner** of the screen:  
@@ -97,7 +95,7 @@ ASC files include:
 - Screen resolution is specified in lines such as:  
   `MSG ... GAZE_COORDS 0.00 0.00 1919.00 1199.00`
 
-## Example structure
+### Example structure
 
 A typical trial contains:
 
@@ -108,7 +106,7 @@ A typical trial contains:
    - `ESACC` (saccades)  
 4. `stimulus_offset` → stimulus disappears  
 
-## Notes
+### Notes
 
 - The files contain **continuous event streams**, not pre-segmented trials.  
   Trial structure must be reconstructed using `MSG` markers.
