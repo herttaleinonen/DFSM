@@ -53,13 +53,11 @@ Contains all participants’ (N = 16) behavioural data (CSV files) and eye movem
 
 
 
-# ASC-files
+## ASC-files
 
 Raw eye-tracking data recorded with EyeLink during the visual search task.
 
 These files are converted from `.EDF` format and contain time-stamped eye movement events, calibration information, and experiment messages.
-
-## File contents
 
 ASC files include:
 
