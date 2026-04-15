@@ -97,7 +97,7 @@ These files are converted from `.EDF` format and contain time-stamped eye moveme
 
 ### Example structure
 
-A typical trial contains:
+A trial contains:
 
 1. `TRIALID` → trial begins  
 2. `stimulus_onset` → stimulus appears  
@@ -111,9 +111,8 @@ A typical trial contains:
 - The files contain **continuous event streams**, not pre-segmented trials.  
   Trial structure must be reconstructed using `MSG` markers.
 
-- Fixations (`EFIX`) are typically the primary input for gaze analyses.
+- Fixations (`EFIX`) are the primary input for gaze analyses.
 
-- These files are large and include more information than required for most analyses.
 
 
 
@@ -121,7 +120,7 @@ A typical trial contains:
 
 # visibility-folder
 
-All participants’ behavioural data from the visibility task (CSV files).
+All participants’ (N=16) behavioural data from the visibility task (CSV files).
 
 ## Columns
 
@@ -156,7 +155,7 @@ All participants’ behavioural data from the visibility task (CSV files).
   Size of the Gabor stimulus (in pixels; may vary slightly due to edge-clipping prevention).
 
 - **stim_speed_px_s**  
-  Stimulus speed (in pixels per second; values: 0, 100, 200, 300, 400).
+  Stimulus speed (in pixels per second; values: 0, 100, 200, 300 or 400).
 
 - **response**  
   Participant response (1 = target, 0 = distractor).
