@@ -152,7 +152,7 @@ All participants’ (N=16) behavioural data from the visibility task (CSV files)
   Angular distance travelled along the circular trajectory (in degrees).
 
 - **gabor_px**  
-  Size of the Gabor stimulus (in pixels; may vary slightly due to edge-clipping prevention).
+  Size of the Gabor stimulus (in pixels).
 
 - **stim_speed_px_s**  
   Stimulus speed (in pixels per second; values: 0, 100, 200, 300 or 400).
