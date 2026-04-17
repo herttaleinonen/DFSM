@@ -1,4 +1,4 @@
-Data contains search- and visibility task's data per participant.
+This folder contains search- and visibility task's data per participant.
 
 # search-folder
 
