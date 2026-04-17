@@ -120,7 +120,7 @@ A trial contains:
 
 # visibility-folder
 
-All participants’ (N=16) behavioural data from the visibility task (CSV files). The file name consist of the participant ID (`kh1` = participant number 1 .... kh 16 = participant number 16), the task that was completed(`vt1` = 0 deg/s visibility task, `vt2` = 3 deg/s visibility task... `vt5` = 11 deg/s visibility task), and date. 
+All participants’ (N=16) behavioural data from the visibility task (CSV files). The file name consist of the participant ID (`kh1` = participant number 1 .... `kh16` = participant number 16), the task that was completed(`vt1` = 0 deg/s visibility task, `vt2` = 3 deg/s visibility task... `vt5` = 11 deg/s visibility task), and date. 
 
 ## Columns
 
