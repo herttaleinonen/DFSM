@@ -2,7 +2,9 @@ This folder contains search- and visibility task's data per participant.
 
 # search-folder
 
-Contains all participants’ (N=16) behavioural data (CSV files) and eye movement data (ASC files) from the visual search task. The file name consist of the participant ID (`kh1` = participant number 1 ... `kh16` = participant number 16), the task ID (`dt1` = 0 deg/s search task ... `dt5` = 11 deg/s search task), and date information. 
+Contains all participants’ (N=16) behavioural data (CSV files) and eye movement data (ASC files) from the visual search task. 
+
+The file name consist of the participant ID (`kh1` = participant number 1 ... `kh16` = participant number 16), the task ID (`dt1` = 0 deg/s search task ... `dt5` = 11 deg/s search task), and date information. 
 
 ## CSV Columns
 
@@ -120,7 +122,9 @@ A trial contains:
 
 # visibility-folder
 
-All participants’ (N=16) behavioural data from the visibility task (CSV files). The file name consist of the participant ID (`kh1` = participant number 1 ... `kh16` = participant number 16), the task ID (`vt1` = 0 deg/s visibility task ... `vt5` = 11 deg/s visibility task), and date information. 
+All participants’ (N=16) behavioural data from the visibility task (CSV files). 
+
+The file name consist of the participant ID (`kh1` = participant number 1 ... `kh16` = participant number 16), the task ID (`vt1` = 0 deg/s visibility task ... `vt5` = 11 deg/s visibility task), and date information. 
 
 ## Columns
 
