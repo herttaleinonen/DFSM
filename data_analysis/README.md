@@ -33,3 +33,6 @@ https://github.com/herttaleinonen/Dynamic_visual_environments/tree/main/DFSM/dat
 - `vis.md`  
   R script that generates the figure depicting peripheral visibility across different velocity conditions.
 
+### Requirements
+The R scripts require packages listed at the top of each `.md` file.
+
