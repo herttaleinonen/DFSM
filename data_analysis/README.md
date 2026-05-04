@@ -1,6 +1,6 @@
 ## Data analysis scripts
 
-This repository contains data analysis scripts for the behavioral and eye‑movement data recorded in the visual search and visibility experiments.
+This repository contains data analysis scripts for the behavioral and eye‑movement data recorded in the visual search and visibility experiments, located in the data-folder.
 
 All `.md` scripts can be run in RStudio to reproduce the figures reported in the paper.
 
