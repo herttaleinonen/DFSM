@@ -1,12 +1,12 @@
 ## Data analysis scripts
 
-This repository contains data analysis scripts for the behavioral and eye‑movement data recorded in the visual search and visibility experiments, located in the data-folder.
+This repository contains data analysis scripts for the behavioral and eye‑movement data recorded in the visual search and visibility experiments.
 
 All `.md` scripts can be run in RStudio to reproduce the figures reported in the paper.
 
 ### Data files
 
-The aggregated data used by the analysis scripts are provided in a single file:
+The aggregated data used by the analysis scripts are provided in a single file, located in the data-folder:
 
 - `long.csv` — long‑format data (used by the R analysis scripts)
 - `wide.csv` — wide‑format version of the same data
