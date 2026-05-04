@@ -15,3 +15,6 @@ Set of experiments developed to study visual search in dynamic environments. Inc
 ## Running 
 
 Run main.py through PsychoPy Coder. 
+
+Number of trials and object speed for the search task can be altered by modifying the file `config.py`. 
+For visibility task, modify the file `visibility_dynamic.py`.
