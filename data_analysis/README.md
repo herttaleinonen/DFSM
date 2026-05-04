@@ -6,7 +6,7 @@ All `.md` scripts can be run in RStudio to reproduce the figures reported in the
 
 ### Data files
 
-The aggregated data used by the analysis scripts are provided in a single file, located in the data-folder:
+The aggregated data used by the analysis scripts are located in the data-folder:
 
 - `long.csv` — long‑format data (used by the R analysis scripts)
 - `wide.csv` — wide‑format version of the same data
