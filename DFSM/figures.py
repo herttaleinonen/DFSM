@@ -40,20 +40,36 @@ COLOR_MODEL = "#2ca02c"   # green
 # -----------------------
 SPEED_ORDER = [0, 100, 200, 300, 400]
 
-SPEED_LABEL_TEXT = "Object velocity (deg/s)"
-
-SPEED_LABELS = {
-    0: 0,
-    100: 3,
-    200: 6,
-    300: 8,
-    400: 11,
+# exact deg/s values (used numerically)
+SPEED_DEG_EXACT = {
+    0:   0.000,
+    100: 2.703,
+    200: 5.406,
+    300: 8.109,
+    400: 10.812,
 }
 
+# rounded labels (shown on axis)
+SPEED_DEG_LABELS = {
+    0:   "0",
+    100: "3",
+    200: "5.5",
+    300: "8",
+    400: "11",
+}
+
+SPEED_LABEL_TEXT = "Object velocity (deg/s)"
+
 def speed_display(x_px):
-    """Convert array-like pixel speeds to degree speeds."""
+    """Convert px/s to exact deg/s (numeric)."""
     x_px = np.asarray(x_px, dtype=int)
-    return np.array([SPEED_LABELS[v] for v in x_px])
+    return np.array([SPEED_DEG_EXACT[v] for v in x_px])
+
+def speed_ticks_and_labels():
+    ticks = [SPEED_DEG_EXACT[v] for v in SPEED_ORDER]
+    labels = [SPEED_DEG_LABELS[v] for v in SPEED_ORDER]
+    return ticks, labels
+
 
 # -----------------------
 # Helpers
@@ -345,7 +361,8 @@ for rt_group, tag in [(rt_group_tp, rt_tp_tag), (rt_group_ta, rt_ta_tag)]:
     plt.xlabel(SPEED_LABEL_TEXT, fontsize=16)
     plt.ylabel("Reaction time (s)", fontsize=16)
     plt.ylim(1.0, 3.3)
-    plt.xticks(list(SPEED_LABELS.values()), fontsize=14)
+    ticks, labels = speed_ticks_and_labels()
+    plt.xticks(ticks, labels, fontsize=14)
     plt.yticks(fontsize=14)
     plt.legend(fontsize=14)
 
@@ -396,7 +413,8 @@ plt.fill_between(
 
 plt.xlabel(SPEED_LABEL_TEXT, fontsize=16)
 plt.ylabel("Sensitivity (d')", fontsize=16)
-plt.xticks(list(SPEED_LABELS.values()), fontsize=14)
+ticks, labels = speed_ticks_and_labels()
+plt.xticks(ticks, labels, fontsize=14)
 plt.yticks(fontsize=14)
 plt.legend(fontsize=14)
 
@@ -481,7 +499,9 @@ for i, pp in enumerate(participants):
     )
 
     ax.set_title(pp_label(pp))
-    ax.set_xticks(list(SPEED_LABELS.values()))
+    ticks, labels = speed_ticks_and_labels()
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
     ax.tick_params(axis='both', labelsize=9, pad=2)
     ax.set_ylim(-0.02, 4.52)  
     ax.grid(True, alpha=0.2)
@@ -561,7 +581,9 @@ for i, pp in enumerate(participants):
     )
 
     ax.set_title(pp_label(pp))
-    ax.set_xticks(list(SPEED_LABELS.values()))
+    ticks, labels = speed_ticks_and_labels()
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
     ax.tick_params(axis='both', labelsize=9, pad=2)
     ax.grid(True, alpha=0.2)
 
