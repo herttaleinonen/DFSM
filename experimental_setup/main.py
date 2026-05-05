@@ -119,7 +119,7 @@ el_tracker.sendCommand("button_function 5 'accept_target_fixation'")
 
 mon = monitors.Monitor('ViewPixx', 
                     width=48.0, 
-                    distance=70.0) # custom dimensions
+                    distance=53.0) # custom dimensions
                         
 mon.setSizePix((1920, 1080))
 
