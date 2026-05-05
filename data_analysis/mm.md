@@ -23,13 +23,13 @@ library(broom.mixed)
 dat <- read_csv("data/long.csv", show_col_types = FALSE)
 
 # ============================================================
-# Speed mapping (exact values for models, rounded for labels)
+# Speed mapping (exact values for models, CUSTOM LABELS)
 # ============================================================
 
 speed_map <- tibble(
   task      = paste0("dt", 1:5),
   speed_num = c(0.000, 2.703, 5.406, 8.109, 10.812),   # exact deg/s
-  speed_lab = c("0", "2.7", "5.4", "8.1", "10.8")     # plot labels
+  speed_lab = c("0", "3", "5.5", "8", "11")           # ← ONLY CHANGE
 )
 
 speed_breaks <- speed_map$speed_num
@@ -111,28 +111,27 @@ plot_spaghetti_with_lmm <- function(df, dv_name, model, ylab,
 
   df <- df %>% filter(!is.na(.data[[cond_var]]))
 
-  # ---- condition means + 95% CI ----
   means <- df %>%
     group_by(.data[[speed_var]], .data[[cond_var]]) %>%
     summarise(
       mean = mean(.data[[dv_name]], na.rm = TRUE),
       sd   = sd(.data[[dv_name]], na.rm = TRUE),
-      n    = sum(!is.na(.data[[dv_name]])),
+      n    = dplyr::n(),
       .groups = "drop"
     ) %>%
     mutate(
       se = sd / sqrt(n),
       ci = qt(0.975, df = n - 1) * se
     ) %>%
-    rename(speed = .data[[speed_var]],
-           cond  = .data[[cond_var]])
+    rename(
+      speed = .data[[speed_var]],
+      cond  = .data[[cond_var]]
+    )
 
-  # ---- fixed-effect predictions (exact velocities) ----
   pred_grid <- expand.grid(
     speed_num = speed_breaks,
     target_present = levels(droplevels(df[[cond_var]]))
   )
-
   pred_grid$pred <- predict(model, newdata = pred_grid, re.form = NA)
 
   names(pred_grid)[names(pred_grid) == "speed_num"] <- speed_var
@@ -143,12 +142,11 @@ plot_spaghetti_with_lmm <- function(df, dv_name, model, ylab,
              y = .data[[dv_name]],
              color = .data[[cond_var]])) +
 
-    
     geom_line(
       aes(group = interaction(.data[[group_var]], .data[[cond_var]])),
       alpha = 0.10,
       linewidth = 0.5
-    )
+    ) +
 
     geom_errorbar(
       data = means,
