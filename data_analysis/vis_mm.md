@@ -68,7 +68,7 @@ print(vt_participant)
 #   participant-specific intercept on parameter a
 # ------------------------------------------------------------
 
-# Starting values matter in nlme; these are reasonable guesses
+# Starting values 
 start_vals <- c(
   a = 4.0,    # baseline
   b = -0.20,  # accuracy falls with eccentricity
