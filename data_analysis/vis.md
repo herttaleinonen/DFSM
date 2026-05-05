@@ -20,8 +20,8 @@ dat <- read_csv("data/long.csv", show_col_types = FALSE)
 
 # ------------------------------------------------------------
 # 2) Keep visibility tasks and define speed
-#    - numeric speed: exact deg/s (used for calculations if needed)
-#    - speed_lab: factor used ONLY for plotting / legend labels
+#    - numeric speed: exact deg/s (used for calculations)
+#    - speed_lab: factor used only for plotting / legend labels
 # ------------------------------------------------------------
 
 vt <- dat %>%
@@ -38,7 +38,7 @@ vt <- dat %>%
       task == "vt5" ~ 10.812
     ),
 
-    # plotting labels (THIS controls legend text)
+    # plotting labels 
     speed_lab = factor(
       c("0", "3", "5.5", "8", "11")[match(task, paste0("vt", 1:5))],
       levels = c("0", "3", "5.5", "8", "11")
