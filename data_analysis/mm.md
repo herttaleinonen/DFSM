@@ -29,7 +29,7 @@ dat <- read_csv("data/long.csv", show_col_types = FALSE)
 speed_map <- tibble(
   task      = paste0("dt", 1:5),
   speed_num = c(0.000, 2.703, 5.406, 8.109, 10.812),   # exact deg/s
-  speed_lab = c("0", "3", "5.5", "8", "11")           # ← ONLY CHANGE
+  speed_lab = c("0", "3", "5.5", "8", "11")           # labels on x axis
 )
 
 speed_breaks <- speed_map$speed_num
