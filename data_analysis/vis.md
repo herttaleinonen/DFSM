@@ -20,6 +20,8 @@ dat <- read_csv("data/long.csv", show_col_types = FALSE)
 
 # ------------------------------------------------------------
 # 2) Keep visibility tasks and define speed
+#    - numeric speed: exact deg/s (used for calculations if needed)
+#    - speed_lab: factor used ONLY for plotting / legend labels
 # ------------------------------------------------------------
 
 vt <- dat %>%
@@ -27,24 +29,32 @@ vt <- dat %>%
   mutate(
     participant = factor(participant),
 
+    # exact numeric speeds (deg/s)
     speed = case_when(
-      task == "vt1" ~ 0,
-      task == "vt2" ~ 3,
-      task == "vt3" ~ 6,
-      task == "vt4" ~ 8,
-      task == "vt5" ~ 11
+      task == "vt1" ~ 0.000,
+      task == "vt2" ~ 2.703,
+      task == "vt3" ~ 5.406,
+      task == "vt4" ~ 8.109,
+      task == "vt5" ~ 10.812
     ),
 
-    speed = factor(speed),
-    correct = as.numeric(correct)
-  )
+    # plotting labels (THIS controls legend text)
+    speed_lab = factor(
+      c("0", "3", "5.5", "8", "11")[match(task, paste0("vt", 1:5))],
+      levels = c("0", "3", "5.5", "8", "11")
+    ),
+
+    correct = as.numeric(correct),
+    ecc_deg = as.numeric(ecc_deg)
+  ) %>%
+  filter(!is.na(speed), !is.na(correct), !is.na(ecc_deg))
 
 # ------------------------------------------------------------
 # 3) Participant-level accuracy
 # ------------------------------------------------------------
 
 vt_participant <- vt %>%
-  group_by(participant, speed, ecc_deg) %>%
+  group_by(participant, speed, speed_lab, ecc_deg) %>%
   summarise(
     acc = mean(correct, na.rm = TRUE),
     .groups = "drop"
@@ -55,44 +65,45 @@ vt_participant <- vt %>%
 # ------------------------------------------------------------
 
 vt_summary <- vt_participant %>%
-  group_by(speed, ecc_deg) %>%
+  group_by(speed_lab, ecc_deg) %>%
   summarise(
     mean_acc = mean(acc, na.rm = TRUE),
     sem = sd(acc, na.rm = TRUE) / sqrt(n()),
     .groups = "drop"
   )
 
-print(vt_summary)
-
 # ------------------------------------------------------------
 # 5) Plot
 # ------------------------------------------------------------
 
-p_visibility <- ggplot(vt_summary,
-                       aes(x = ecc_deg,
-                           y = mean_acc,
-                           color = speed,
-                           group = speed)) +
-
+p_visibility <- ggplot(
+  vt_summary,
+  aes(
+    x = ecc_deg,
+    y = mean_acc,
+    color = speed_lab,
+    group = speed_lab
+  )
+) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2.5) +
-
   geom_errorbar(
-    aes(ymin = mean_acc - sem,
-        ymax = mean_acc + sem),
+    aes(
+      ymin = mean_acc - sem,
+      ymax = mean_acc + sem
+    ),
     width = 0.2
   ) +
-
   labs(
     x = "Eccentricity (deg)",
     y = "Accuracy",
-    color = "Velocity (deg/s)",
+    color = "Speed (deg/s)",
     title = "Visibility as a function of eccentricity"
   ) +
-
-  scale_y_continuous(breaks = seq(0.6,1,0.1)) +
-  coord_cartesian(ylim = c(0.6,1)) +
-
+  scale_y_continuous(
+    breaks = seq(0.6, 1, 0.1),
+    limits = c(0.5, 1)
+  ) +
   theme_classic() +
   theme(
     text = element_text(size = 14),
@@ -102,6 +113,8 @@ p_visibility <- ggplot(vt_summary,
     panel.background = element_rect(fill = "white"),
     plot.background = element_rect(fill = "white")
   )
+
+print(p_visibility)
 
 # ------------------------------------------------------------
 # 6) Save figure
