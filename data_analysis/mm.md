@@ -1,56 +1,50 @@
 # Created on Mon Feb 26 11:38:18 2026
-
 # @author: herttaleinonen
 
-
-install.packages(c("broom.mixed"))
-
 # ============================================================
-# Linear Mixed Models for Dynamic Search Tasks (DT1–DT5)
-# Fixed: speed (linear numeric) * target_present
-# Random: (1 | participant) [optionally (1 + speed | participant)]
-# DVs: RT, Accuracy, Fixation count, Scanpath length, Dispersion, Distance from centre
-# Output: model summaries, ANOVA (Type III), emmeans, plots
+# Packages
 # ============================================================
 
-# 0) Packages
-install.packages(c(
-  "readr","dplyr","tidyr","ggplot2","stringr",
-  "lme4","lmerTest","emmeans","car","performance"
-))
-library(broom.mixed)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(stringr)
 library(lme4)
-library(lmerTest)     # p-values for lmer
+library(lmerTest)
 library(emmeans)
-library(car)          # type-III Anova
-library(performance)  # R2, ICC, etc.
+library(car)
+library(performance)
+library(broom.mixed)
 
-# 1) Load long data
+# ============================================================
+# Load data
+# ============================================================
+
 dat <- read_csv("data/long.csv", show_col_types = FALSE)
 
-# 2) Keep DT tasks only + create factors
+# ============================================================
+# Speed mapping (exact values for models, rounded for labels)
+# ============================================================
+
+speed_map <- tibble(
+  task      = paste0("dt", 1:5),
+  speed_num = c(0.000, 2.703, 5.406, 8.109, 10.812),   # exact deg/s
+  speed_lab = c("0", "2.7", "5.4", "8.1", "10.8")     # plot labels
+)
+
+speed_breaks <- speed_map$speed_num
+speed_labels <- speed_map$speed_lab
+
+# ============================================================
+# DT tasks + factors
+# ============================================================
+
 dt <- dat %>%
   filter(task %in% paste0("dt", 1:5)) %>%
+  left_join(speed_map, by = "task") %>%
   mutate(
-    speed_num = case_when(
-      task == "dt1" ~ 0,
-      task == "dt2" ~ 3,
-      task == "dt3" ~ 6,
-      task == "dt4" ~ 8,
-      task == "dt5" ~ 11,
-      TRUE ~ NA_real_
-    ),
-
-    # factor version for plotting
-    speed_fac = factor(speed_num, levels = c(0, 3, 6, 8, 11)),
-
+    speed_fac = factor(speed_lab, levels = speed_labels),
     participant = factor(participant),
-
     target_present = factor(
       target_present,
       levels = c(0, 1),
@@ -58,7 +52,10 @@ dt <- dat %>%
     )
   )
 
-# 3) Aggregate to condition means 
+# ============================================================
+# Aggregate data
+# ============================================================
+
 dt_rt <- dt %>%
   filter(correct == 1) %>%
   group_by(participant, speed_num, speed_fac, target_present) %>%
@@ -80,208 +77,165 @@ dt_eye <- dt %>%
   ) %>%
   filter(n_trials > 0)
 
-# Combined aggregated file
-dt_all <- dt_rt %>%
-  left_join(dt_acc, by = c("participant","speed_num","speed_fac","target_present")) %>%
-  left_join(dt_eye, by = c("participant","speed_num","speed_fac","target_present"))
+# ============================================================
+# Mixed models
+# ============================================================
 
-write_csv(dt_all, "data/dt_all_aggregated.csv")
-
-# ------------------------------------------------------------
-# 4) Mixed model helpers
-# ------------------------------------------------------------
-
-# Type III tests: set sum-to-zero contrasts
 options(contrasts = c("contr.sum", "contr.poly"))
 
-fit_lmm <- function(df, dv_name, random_slope_speed = FALSE) {
-  rand <- if (random_slope_speed) "(1 + speed_num | participant)" else "(1 | participant)"
-  f <- as.formula(paste0(dv_name, " ~ speed_num * target_present + ", rand))
-  lmer(f, data = df, REML = FALSE)
-}
-
-report_lmm <- function(df, dv_name, random_slope_speed = FALSE) {
-  cat("\n====================================================\n")
-  cat("LMM for DV:", dv_name, "\n")
-  cat("Random structure:", if (random_slope_speed) "(1 + speed_num | participant)" else "(1 | participant)", "\n")
-  
-  m <- fit_lmm(df, dv_name, random_slope_speed = random_slope_speed)
-  
-  cat("\n--- Model summary (fixed effects) ---\n")
-  print(summary(m))
-  
-  cat("\n--- Type III ANOVA (Wald tests) ---\n")
-  print(car::Anova(m, type = 3))
-  
-  cat("\n--- Performance (R2, ICC) ---\n")
-  print(performance::r2(m))
-  print(performance::icc(m))
-  
-  invisible(m)
-}
-
-# ------------------------------------------------------------
-# 5) Fit models 
-# ------------------------------------------------------------
-
-m_rt    <- report_lmm(dt_rt,  "rt")
-m_acc   <- report_lmm(dt_acc, "acc")
-m_fix   <- report_lmm(dt_eye, "fix_count")
-m_scan  <- report_lmm(dt_eye, "scanpath")
-m_disp  <- report_lmm(dt_eye, "dispersion")
-m_ctr   <- report_lmm(dt_eye, "center_dist")
-
-# ------------------------------------------------------------
-# 6) Post-hoc / simple effects with emmeans
-# ------------------------------------------------------------
-
-cat("\n===== RT: speed trend within target_present =====\n")
-print(emtrends(m_rt, ~ target_present, var = "speed_num"))
-
-cat("\n===== RT: target_present difference at each speed level (grid) =====\n")
-
-# Evaluate target effect at the observed speeds (0..11)
-rt_grid <- emmeans(m_rt, ~ target_present | speed_num,
-                   at = list(speed_num = c(0,3,6,8,11)))
-print(pairs(rt_grid, adjust = "holm"))
-
-cat("\n===== Dispersion: speed trend within target_present =====\n")
-print(emtrends(m_disp, ~ target_present, var = "speed_num"))
-
-cat("\n===== Dispersion: target_present difference at each speed level =====\n")
-disp_grid <- emmeans(m_disp, ~ target_present | speed_num,
-                     at = list(speed_num = c(0,3,6,8,11)))
-print(pairs(disp_grid, adjust = "holm"))
-
-cat("\n===== Centre distance: speed trend within target_present =====\n")
-print(emtrends(m_ctr, ~ target_present, var = "speed_num"))
-
-cat("\n===== Centre distance: target_present difference at each speed level =====\n")
-ctr_grid <- emmeans(m_ctr, ~ target_present | speed_num,
-                    at = list(speed_num = c(0,3,6,8,11)))
-print(pairs(ctr_grid, adjust = "holm"))
-
-# ------------------------------------------------------------
-# 7) Visualization: predicted lines from the LMM
-# ------------------------------------------------------------
-
-plot_lmm_pred <- function(model, df, dv_name, ylab) {
-  newdat <- expand.grid(
-    speed_num = c(0,3,6,8,11),
-    target_present = levels(df$target_present)
+fit_lmm <- function(df, dv) {
+  lmer(
+    as.formula(paste0(dv, " ~ speed_num * target_present + (1|participant)")),
+    data = df,
+    REML = FALSE
   )
-  newdat$pred <- predict(model, newdata = newdat, re.form = NA)
-
-  ggplot(newdat, aes(x = speed_num, y = pred, color = target_present, group = target_present)) +
-    geom_line() +
-    geom_point() +
-    labs(x = "Speed (deg/s)", y = ylab, color = "Target") +
-    theme_minimal() +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      text = element_text(size = 14)
-    )
 }
 
-p_rt   <- plot_lmm_pred(m_rt,   dt_rt,  "rt",         "Predicted RT (s) [correct trials]")
-p_acc  <- plot_lmm_pred(m_acc,  dt_acc, "acc",        "Predicted Accuracy")
-p_fix  <- plot_lmm_pred(m_fix,  dt_eye, "fix_count",  "Predicted fixation count")
-p_scan <- plot_lmm_pred(m_scan, dt_eye, "scanpath", "Predicted scanpath length (deg)")
-p_disp <- plot_lmm_pred(m_disp, dt_eye, "dispersion", "Predicted dispersion (deg²)")
+m_rt   <- fit_lmm(dt_rt,  "rt")
+m_acc  <- fit_lmm(dt_acc, "acc")
+m_fix  <- fit_lmm(dt_eye, "fix_count")
+m_scan <- fit_lmm(dt_eye, "scanpath")
+m_disp <- fit_lmm(dt_eye, "dispersion")
+m_ctr  <- fit_lmm(dt_eye, "center_dist")
 
-print(p_rt)
-print(p_acc)
-print(p_fix)
-print(p_scan)
-print(p_disp)
-
+# ============================================================
+# Spaghetti + LMM + 95% CI plotting function
+# ============================================================
 
 plot_spaghetti_with_lmm <- function(df, dv_name, model, ylab,
                                     speed_var = "speed_num",
                                     group_var = "participant",
                                     cond_var  = "target_present",
-                                    speeds = c(0,3,6,8,11)) {
-  
-  # ensure the vars exist
-  stopifnot(all(c(dv_name, speed_var, group_var, cond_var) %in% names(df)))
-  
-  # Condition means (across participants) for plotting mean points
+                                    speed_breaks,
+                                    speed_labels) {
+
+  df <- df %>% filter(!is.na(.data[[cond_var]]))
+
+  # ---- condition means + 95% CI ----
   means <- df %>%
     group_by(.data[[speed_var]], .data[[cond_var]]) %>%
-    summarise(mean = mean(.data[[dv_name]], na.rm = TRUE), .groups = "drop") %>%
-    rename(speed = .data[[speed_var]], cond = .data[[cond_var]])
-  
-  # Fixed-effect predictions from the LMM (no random effects)
+    summarise(
+      mean = mean(.data[[dv_name]], na.rm = TRUE),
+      sd   = sd(.data[[dv_name]], na.rm = TRUE),
+      n    = sum(!is.na(.data[[dv_name]])),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      se = sd / sqrt(n),
+      ci = qt(0.975, df = n - 1) * se
+    ) %>%
+    rename(speed = .data[[speed_var]],
+           cond  = .data[[cond_var]])
+
+  # ---- fixed-effect predictions (exact velocities) ----
   pred_grid <- expand.grid(
-    speed_num = speeds,
-    target_present = levels(df[[cond_var]])
+    speed_num = speed_breaks,
+    target_present = levels(droplevels(df[[cond_var]]))
   )
-  # adapt if speed_var/cond_var names differ in df/model
+
+  pred_grid$pred <- predict(model, newdata = pred_grid, re.form = NA)
+
   names(pred_grid)[names(pred_grid) == "speed_num"] <- speed_var
   names(pred_grid)[names(pred_grid) == "target_present"] <- cond_var
-  
-  pred_grid$pred <- predict(model, newdata = pred_grid, re.form = NA)
-  
-  # Plot
-  ggplot(df, aes(x = .data[[speed_var]], y = .data[[dv_name]], color = .data[[cond_var]])) +
+
+  ggplot(df,
+         aes(x = .data[[speed_var]],
+             y = .data[[dv_name]],
+             color = .data[[cond_var]])) +
+
     
-    # Individual participant lines (spaghetti)
-    geom_line(aes(group = interaction(.data[[group_var]], .data[[cond_var]])),
-              alpha = 0.20, linewidth = 0.6) +
-    
-    # Individual participant points
-    geom_point(alpha = 0.20, size = 1.3) +
-    
-    # Condition means (bold points)
-    geom_point(data = means, aes(x = speed, y = mean, color = cond),
-               size = 2.6, alpha = 0.95) +
-    
-    # LMM fixed-effect prediction line (bold slope)
-    geom_line(data = pred_grid,
-              aes(x = .data[[speed_var]], y = pred, color = .data[[cond_var]],
-                  group = .data[[cond_var]]),
-              linewidth = 1.3, alpha = 0.95) +
-    
-    labs(x = "Speed (deg/s)", y = ylab, color = "Target") +
-    theme_minimal() +
+    geom_line(
+      aes(group = interaction(.data[[group_var]], .data[[cond_var]])),
+      alpha = 0.10,
+      linewidth = 0.5
+    )
+
+    geom_errorbar(
+      data = means,
+      inherit.aes = FALSE,
+      aes(
+        x = speed,
+        ymin = mean - ci,
+        ymax = mean + ci,
+        color = cond
+      ),
+      width = 0.25,
+      linewidth = 0.8
+    ) +
+
+    geom_point(
+      data = means,
+      inherit.aes = FALSE,
+      aes(x = speed, y = mean, color = cond),
+      size = 2.8
+    ) +
+
+    geom_line(
+      data = pred_grid,
+      aes(
+        x = .data[[speed_var]],
+        y = pred,
+        color = .data[[cond_var]],
+        group = .data[[cond_var]]
+      ),
+      linewidth = 1.4
+    ) +
+
+    scale_x_continuous(
+      breaks = speed_breaks,
+      labels = speed_labels
+    ) +
+
+    labs(
+      x = "Velocity (deg/s)",
+      y = ylab,
+      color = "Target"
+    ) +
+    theme_minimal(base_size = 18) +
     theme(
       panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      text = element_text(size = 14)
+      panel.grid.minor = element_blank()
     )
 }
 
-# RT
-p_rt_spag <- plot_spaghetti_with_lmm(dt_rt, "rt", m_rt,
-                                     ylab = "RT (s) [correct trials]")
+# ============================================================
+# Generate plots
+# ============================================================
 
-# Accuracy
-p_acc_spag <- plot_spaghetti_with_lmm(dt_acc, "acc", m_acc,
-                                      ylab = "Accuracy (proportion)")
-
-# Fix count
-p_fix_spag <- plot_spaghetti_with_lmm(dt_eye, "fix_count", m_fix,
-                                      ylab = "Fixation count")
-
-# Scanpath
-p_scan_spag <- plot_spaghetti_with_lmm(dt_eye, "scanpath", m_scan,
-                                       ylab = "Scanpath length (deg)")
-
-# Dispersion
-p_disp_spag <- plot_spaghetti_with_lmm(
-  dt_eye,
-  "dispersion",
-  m_disp,
-  ylab = "Dispersion (deg²)"
+p_rt_spag <- plot_spaghetti_with_lmm(
+  dt_rt, "rt", m_rt, "RT (s)",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
 )
 
-# Distance from centre
+p_acc_spag <- plot_spaghetti_with_lmm(
+  dt_acc, "acc", m_acc, "Accuracy",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
+)
+
+p_fix_spag <- plot_spaghetti_with_lmm(
+  dt_eye, "fix_count", m_fix, "Fixation count",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
+)
+
+p_scan_spag <- plot_spaghetti_with_lmm(
+  dt_eye, "scanpath", m_scan, "Scanpath length (deg)",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
+)
+
+p_disp_spag <- plot_spaghetti_with_lmm(
+  dt_eye, "dispersion", m_disp, "Dispersion (deg²)",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
+)
+
 p_ctr_spag <- plot_spaghetti_with_lmm(
-  dt_eye,
-  "center_dist",
-  m_ctr,
-  ylab = "Fixation distance from centre (deg)"
+  dt_eye, "center_dist", m_ctr, "Distance from centre (deg)",
+  speed_breaks = speed_breaks,
+  speed_labels = speed_labels
 )
 
 print(p_rt_spag)
@@ -290,4 +244,3 @@ print(p_fix_spag)
 print(p_scan_spag)
 print(p_disp_spag)
 print(p_ctr_spag)
-
