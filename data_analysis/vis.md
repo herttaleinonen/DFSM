@@ -102,7 +102,7 @@ p_visibility <- ggplot(
   ) +
   scale_y_continuous(
     breaks = seq(0.6, 1, 0.1),
-    limits = c(0.5, 1)
+    limits = c(0.6, 1)
   ) +
   theme_classic() +
   theme(
@@ -111,8 +111,9 @@ p_visibility <- ggplot(
     panel.grid.major.x = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background = element_rect(fill = "white"),
-    plot.background = element_rect(fill = "white")
-  )
+    plot.background = element_rect(fill = "white"),
+    plot.tag = element_text(size = 24, face = "bold")
+  ) + labs(tag = "a.")
 
 print(p_visibility)
 
@@ -126,4 +127,4 @@ ggsave(
   width = 6,
   height = 4,
   dpi = 300
-)
+) 
