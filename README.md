@@ -6,7 +6,7 @@
 Python 3.10 or newer. <br/>
 
 # Installation
-To install, clone the "replay_model" -folder to your machine.
+To install, clone the `replay_model` -folder to your machine.
 
 # Running 
 
