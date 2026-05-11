@@ -13,8 +13,8 @@ The aggregated data used by the analysis scripts are located in the data-folder:
 
 The complete, non‑aggregated dataset is available in:
 
-`Dynamic_visual_environments/DFSM/data`  
-https://github.com/herttaleinonen/Dynamic_visual_environments/tree/main/DFSM/data
+`DFSM/replay_model/data`  
+https://github.com/herttaleinonen/DFSM/tree/main/replay_model/data
 
 ### Scripts
 
