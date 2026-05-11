@@ -1,6 +1,6 @@
 # The Dynamic Foveated Search Model 
 
-<a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/DFSM/images/DFSM.png" height="548" width="548" ></a>
+<a href="url"><img src="https://github.com/herttaleinonen/DFSM/blob/main/replay_model/images/dfsm.png" height="548" width="548" ></a>
 
 # Requirements
 Python 3.10 or newer. <br/>
