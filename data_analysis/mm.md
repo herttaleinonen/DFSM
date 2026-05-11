@@ -200,7 +200,8 @@ plot_spaghetti_with_lmm <- function(df, dv_name, model, ylab,
     theme_minimal(base_size = 18) +
     theme(
       panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+      plot.tag = element_text(size = 24, face = "bold")
     )
 }
 
@@ -212,37 +213,37 @@ p_rt_spag <- plot_spaghetti_with_lmm(
   dt_rt, "rt", m_rt, "RT (s)",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "a.")
 
 p_acc_spag <- plot_spaghetti_with_lmm(
   dt_acc, "acc", m_acc, "Accuracy",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "b.")
 
 p_fix_spag <- plot_spaghetti_with_lmm(
   dt_eye, "fix_count", m_fix, "Fixation count",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "a.")
 
 p_scan_spag <- plot_spaghetti_with_lmm(
   dt_eye, "scanpath", m_scan, "Scanpath length (deg)",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "b.")
 
 p_disp_spag <- plot_spaghetti_with_lmm(
   dt_eye, "dispersion", m_disp, "Dispersion (deg²)",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "c.")
 
 p_ctr_spag <- plot_spaghetti_with_lmm(
   dt_eye, "center_dist", m_ctr, "Distance from centre (deg)",
   speed_breaks = speed_breaks,
   speed_labels = speed_labels
-)
+) + labs(tag = "d.")
 
 print(p_rt_spag)
 print(p_acc_spag)
