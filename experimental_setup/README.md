@@ -2,7 +2,7 @@
 
 Set of experiments developed to study visual search in dynamic environments. Includes dynamic visual search tasks (a) and dynamic visibility tasks (b). 
 
-**a.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experimental_setup/images/Picture%201.png" height="448" width="448" ></a> **b.** <a href="url"><img src="https://github.com/herttaleinonen/Dynamic_visual_environments/blob/main/experimental_setup/images/Picture%202.png" height="348" width="348" ></a>
+<a href="url"><img src="https://github.com/herttaleinonen/DFSM/blob/main/experimental_setup/images/Picture_1.png" height="448" width="448" ></a> <a href="url"><img src="https://github.com/herttaleinonen/DFSM/blob/main/experimental_setup/images/Picture_2.png" height="348" width="348" ></a>
 
 
 ## Requirements 
