@@ -311,7 +311,7 @@ def run_dynamic_visibility_trials(
         text=("In this task, a single object will briefly appear on noise at different eccentricities.\n"
               "If it is the TARGET object (90° tilt), press GREEN button.\n"
               "If it is a DISTRACTOR object (any other tilt), or you did not see it, press RED button.\n"
-              "Between trials focus your eyes to the cross shown in the middle of the screen.\n\n"
+              "Focus your eyes to the cross shown in the middle of the screen.\n\n"
               "Press any button to start."),
         color='white', height=30, wrapWidth=screen_width_pix * 0.85, units='pix',
         pos=(0, screen_height_pix * 0.24)
