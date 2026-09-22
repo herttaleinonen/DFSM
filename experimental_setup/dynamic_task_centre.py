@@ -659,7 +659,7 @@ def run_dynamic_trials_centre(win, el_tracker, screen_width, screen_height, part
             if response is None:
                 post_resp_clock = core.Clock()
                 max_post_resp   = 20.0
-                dead_time_post  = 0.5
+                dead_time_post  = 0.1
                 resp_open_post  = False
                 wait_text.draw()
                 win.flip()
