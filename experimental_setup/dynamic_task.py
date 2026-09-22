@@ -613,7 +613,7 @@ def run_dynamic_trials(win, el_tracker, screen_width, screen_height, participant
             if response is None:   # only if participant didn't respond during the stimulus
                 post_resp_clock = core.Clock()
                 max_post_resp   = 20.0   # seconds allowed after stimulus offset
-                dead_time_post  = 0.5   # responses during the first 0.5s ignored
+                dead_time_post  = 0.1   # responses during the first 0.5s ignored
                 resp_open_post  = False
             
                 # Show waiting message
