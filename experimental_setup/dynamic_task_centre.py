@@ -232,7 +232,7 @@ def run_dynamic_trials_centre(win, el_tracker, screen_width, screen_height, part
     # -------- central-fixation enforcement parameters --------
     GAZE_DEG_THRESH = 2.499      # participant must stay within this many degrees of center
     BREAK_GRACE_MS = 200.0       # brief excursions/blinks under this duration are tolerated
-    MAX_REQUEUE_ATTEMPTS = 5     # safety cap: after this many aborts, exclude the trial and move on
+    MAX_REQUEUE_ATTEMPTS = 1     # safety cap: after this many aborts, exclude the trial and move on
     px_per_deg = float(cell_size)
     if px_per_deg <= 0:
         px_per_deg = 1.0
