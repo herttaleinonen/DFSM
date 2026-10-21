@@ -28,18 +28,25 @@ GLOBAL_TND_S = 0.70 # non-decision time
 
 MODEL_SAMPLING_RATE = 0.05 # 0.05 = fixed-sampling-rate model; None = object-displacement-based discretization model
 
+T_VIS_S = 0.4  # duration of the stimulus in the visibility task (s)
+
+TIMEOUT_DV_THRESHOLD = 1e9 # = time out leads to "absent"-answer
 
 # =========================
 # Null model switches:
 # =========================
 
-GAZE_MODE = "real" # change to "random"/"shuffle_time"/"center"/"corner_tl"/"ideal_coverage"/"random_from_real_hist" for null model runs, 
+GAZE_MODE = "real" # change to "random"/"shuffle_time"/"center"/"corner_tl"/"ideal_coverage"/"random_from_real_hist"/"matched_eccentricity_random_direction" for null model runs, 
                    # keep      "real" for normal model run
 
+VISIBILITY_MODE = "empirical"          # normal model run
+#VISIBILITY_MODE = "mean_across_speeds"   # velocity-independent, averaged over speeds
+#VISIBILITY_MODE = "freeze_speed_at_0"  # velocity-independent, static (0 deg/s) visibility
+#VISIBILITY_MODE = "constant_from_speed0"  # eccentricity-independent
 
-VISIBILITY_MODE = "empirical" # change to  "constant_from_speed0" for null model run 
-                              # keep       "empirical" for normal model run 
 VIS_NULL_SOURCE_SPEED = 0
 VIS_CONSTANT_RULE = "mean" # or "median"/"foveal"
 VIS_REF_ECC_DEG = 0.0
+
+
 
