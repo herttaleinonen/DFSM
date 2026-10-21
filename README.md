@@ -88,7 +88,7 @@ where the subscripts *h* and *m* denote human and model respectively, and the su
 velocity conditions 𝑣. Target-present *TP* , and target-absent *TA* reaction times are compared
 on a log scale to treat proportional differences equivalently across conditions. Trial-wise
 stimulus and gaze time series were precomputed once. Parameter estimation proceeded in
-two phases: *η* was searched over [0.002, 0.20] (12 points) and *Θ* over [0.02, 1.0] (12 points),
+two phases: *η* was searched over 12 points *Θ* over 12 points,
 with a refined search of ±0.15 and ±1.0 respectively around the coarse optimum. 
 
 
