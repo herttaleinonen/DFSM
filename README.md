@@ -42,11 +42,9 @@ assuming that discriminability grows with the square root of integration time:
 
 $$
 S_{\Delta t}(e_{i,t},v)=
-\alpha\ S(e_{i,t},v)\sqrt{\frac{\Delta t}{0.4}},
+ S(e_{i,t},v)\sqrt{\frac{\Delta t}{0.4}},
 $$
 
-where 𝛼 is a fixed global gain parameter that maps sensitivity measured in the visibility task to
-the effective sensory signal during search, absorbing unmodeled factors such as crowding.
 Momentary sensory samples were converted into object-wise log-likelihood ratio (LLR) increments:
 
 $$
