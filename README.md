@@ -79,8 +79,7 @@ A positive upper bound $\Theta_{p}$ governed target-present responses: if $D_t \
 responded, “target present”, and reaction time was recorded as (𝑡 + 1)Δ𝑡. Target-absent
 responses were governed by a fixed negative lower bound; if $D_t \le \Theta_{A}$, the model responded, 
 “target absent”, and reaction time was recorded as (𝑡 + 1)Δ𝑡. If no bound was
-crossed by stimulus offset (3.5 s), the model responded “target present” if the final decision
-variable was positive, and “target absent” if negative.
+crossed by stimulus offset (3.5 s), the model responded “target absent”.
 
 For each participant, the parameters 𝜂 (sensory noise) and Θ (decision criterion) were
 estimated via grid search by minimizing a composite loss function:
