@@ -143,6 +143,16 @@ def make_visibility_null_model(
     """
     if mode == "empirical":
         return dprime_models_pp
+    
+    if mode == "mean_across_speeds":
+        speeds = sorted(dprime_models_pp.keys())
+        fns = [dprime_models_pp[s] for s in speeds]
+    
+        def pooled_fn(ecc, _fns=fns):
+            ecc = np.asarray(ecc, dtype=float)
+            return np.mean([np.asarray(f(ecc), dtype=float) for f in _fns], axis=0)
+    
+        return {s: pooled_fn for s in speeds}
 
     if source_speed not in dprime_models_pp:
         raise ValueError(f"source_speed={source_speed} not found in dprime model")
@@ -221,6 +231,8 @@ def build_group_mean_dprime_splines(
         )
 
     return group_splines
+
+
 
 
 
