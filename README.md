@@ -2,10 +2,6 @@
 
 <a href="url"><img src="https://github.com/herttaleinonen/DFSM/blob/main/replay_model/images/dfsm.png" height="548" width="548" ></a>
 
-
-Poster available [here](https://github.com/herttaleinonen/DFSM/blob/main/replay_model/images/ECVP%20posteri.pdf).
-
-
 ## The model scheme:
 
 Each search trial was approximated as a sequence of discrete time steps (Δ𝑡 = 50 ms). For each object
