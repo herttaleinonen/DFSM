@@ -390,6 +390,33 @@ def stable_trial_seed(pp: str, csv_basename: str, trial: int) -> int:
     return zlib.crc32(seed_str.encode("utf-8")) & 0xFFFFFFFF
 
 
+def _detect_real_fixation_segments(gaze_cells, tol=1e-3):
+    """
+    Detects real fixation segments directly from the frame-level gaze_cells
+    array (already forward-filled between confirmed fixation samples), by
+    finding runs of constant position. Returns a list of
+    (start_frame, end_frame_exclusive, position) tuples using each segment's
+    REAL duration in frames -- not an artificial fixed cadence. Runs of NaN
+    (missing gaze) are treated as their own segment.
+    """
+    T = gaze_cells.shape[0]
+    segments = []
+    seg_start = 0
+    for t in range(1, T + 1):
+        same_as_prev = False
+        if t < T:
+            prev, curr = gaze_cells[t - 1], gaze_cells[t]
+            if np.any(np.isnan(prev)) or np.any(np.isnan(curr)):
+                same_as_prev = np.all(np.isnan(prev)) and np.all(np.isnan(curr))
+            else:
+                same_as_prev = np.all(np.abs(curr - prev) <= tol)
+        if t == T or not same_as_prev:
+            pos = gaze_cells[seg_start]
+            segments.append((seg_start, t, pos))
+            seg_start = t
+    return segments
+
+
 # =========================
 # Gaze null-models
 # =========================
@@ -507,6 +534,39 @@ def perturb_gaze(gaze_cells, mode, rng, dt_s=None):
             fix_centers[1:, 1] = rng.uniform(0, GRID_SIZE_Y, size=n_fixes - 1)
         return expand_fix_centers(fix_centers)
 
+    # ----- matched_eccentricity_random_direction: same radial distance from center
+    # and TRUE fixation count/dwell-time as the real scanpath, but randomized
+    # angular direction. Uses real fixation segment boundaries detected directly
+    # from gaze_cells, rather than the artificial fixed 250ms cadence used by
+    # the other synthetic policies (Reviewer 1, Comment 2).
+    if mode == "matched_eccentricity_random_direction":
+        segments = _detect_real_fixation_segments(gaze_cells)
+        g = np.zeros((T, 2), dtype=float)
+
+        max_angle_tries = 20
+        for si, (t0, t1, pos) in enumerate(segments):
+            if si == 0:
+                g[t0:t1] = center_xy  # force first fixation to start at center, matching other modes
+                continue
+            if np.any(np.isnan(pos)):
+                g[t0:t1] = center_xy
+                continue
+            radius = float(np.linalg.norm(pos - center_xy))
+            placed = False
+            for _ in range(max_angle_tries):
+                angle = rng.uniform(0, 2 * np.pi)
+                candidate = center_xy + radius * np.array([np.cos(angle), np.sin(angle)])
+                if (0 <= candidate[0] <= GRID_SIZE_X) and (0 <= candidate[1] <= GRID_SIZE_Y):
+                    g[t0:t1] = candidate
+                    placed = True
+                    break
+            if not placed:
+                angle = rng.uniform(0, 2 * np.pi)
+                candidate = center_xy + radius * np.array([np.cos(angle), np.sin(angle)])
+                g[t0:t1] = np.clip(candidate, [0, 0], [GRID_SIZE_X, GRID_SIZE_Y])
+
+        return g
+    
     # ----- coverage-maximizing fixation policy, start at center -----
     """
     Picks a point whose nearest neighbor among recent fixations is as far away as possible.
