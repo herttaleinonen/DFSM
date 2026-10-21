@@ -17,7 +17,7 @@ import statsmodels.formula.api as smf
 import math
 
 # ------------------------------------------------------------------
-# Journal-compliant style
+# Journal style
 # ------------------------------------------------------------------
 class R:
     BASE_SIZE    = 18
@@ -31,6 +31,12 @@ class R:
     ALPHA_SPAG   = 0.10
     GRID_COLOR   = "#e5e5e5"
     GRID_LW      = 0.8
+    
+    
+TITLE_FS = R.BASE_SIZE * 1.2
+LABEL_FS = R.BASE_SIZE * 1.2
+TICK_FS  = R.BASE_SIZE * 1.2
+LEGEND_FS = R.BASE_SIZE * 1.15
 
 def apply_r_style():
     mpl.rcParams.update({
@@ -39,8 +45,8 @@ def apply_r_style():
         "font.size":           R.BASE_SIZE,
         "axes.titlesize":      R.BASE_SIZE,
         "axes.labelsize":      R.BASE_SIZE,
-        "xtick.labelsize":     R.BASE_SIZE * 0.85,
-        "ytick.labelsize":     R.BASE_SIZE * 0.85,
+        "xtick.labelsize":     R.BASE_SIZE * 0.8,
+        "ytick.labelsize":     R.BASE_SIZE * 0.8,
         "font.weight":         "normal",
         "axes.titleweight":    "normal",
         "axes.labelweight":    "normal",
@@ -57,8 +63,8 @@ def apply_r_style():
         "grid.color":          R.GRID_COLOR,
         "grid.linewidth":      R.GRID_LW,
         "grid.linestyle":      "-",
-        "xtick.major.size":    4,
-        "ytick.major.size":    4,
+        "xtick.major.size":    3,
+        "ytick.major.size":    3,
         "xtick.direction":     "out",
         "ytick.direction":     "out",
         "legend.frameon":      False,
@@ -91,10 +97,11 @@ apply_r_style()
 # -----------------------
 # Settings
 # -----------------------
-CSV_PATH = "replay_model_results_test.csv"
+CSV_PATH = "replay_model_results_kfold_pooled.csv"
 OUTDIR = "figures"
 USE_CORRECT_ONLY_FOR_HUMAN_RT = False
 MODEL_RT_FALLBACK_COL = "model_rt_mean_s"
+DPRIME_YLIM = (1.15, 5.0)   # fixed y-range for all d' plots
 
 COLOR_TP    = "#1f77b4"
 COLOR_TA    = "#d62728"
@@ -104,7 +111,7 @@ COLOR_MODEL = "#2ca02c"
 SPEED_ORDER = [0, 100, 200, 300, 400]
 SPEED_DEG_EXACT = {0: 0.000, 100: 2.703, 200: 5.406, 300: 8.109, 400: 10.812}
 SPEED_DEG_LABELS = {0: "0", 100: "3", 200: "5.5", 300: "8", 400: "11"}
-SPEED_LABEL_TEXT = "Object velocity (deg/s)"
+SPEED_LABEL_TEXT = "Velocity (deg/s)"
 
 def speed_display(x_px):
     x_px = np.asarray(x_px, dtype=int)
@@ -135,9 +142,14 @@ def accuracy_by_pp(df_in):
     return (df_in.groupby(["participant","speed_px_s_used"], as_index=False)
                  .agg(human_acc=("human_acc","mean"), model_acc=("model_acc","mean")))
 
-def rates_to_dprime(hit, fa, eps=1e-4):
-    H = np.clip(hit, eps, 1-eps)
-    F = np.clip(fa,  eps, 1-eps)
+def rates_to_dprime(hit, n_pos, fa, n_neg):
+    """Log-linear corrected d'. hit/fa are rates, n_pos/n_neg the number of
+    target-present / target-absent trials in that participant x speed cell.
+    For the model the rate is a mean probability, so rate * n is its expected count."""
+    hit, fa = np.asarray(hit, float), np.asarray(fa, float)
+    n_pos, n_neg = np.asarray(n_pos, float), np.asarray(n_neg, float)
+    H = (hit * n_pos + 0.5) / (n_pos + 1)
+    F = (fa  * n_neg + 0.5) / (n_neg + 1)
     return norm.ppf(H) - norm.ppf(F)
 
 def pp_label(pp):
@@ -159,6 +171,7 @@ def set_speed_axis(ax):
     ax.set_xticks(ticks)
     ax.set_xticklabels(labels)
     ax.set_xlabel(SPEED_LABEL_TEXT)
+    ax.set_xlabel(SPEED_LABEL_TEXT, fontsize=LABEL_FS) 
 
 # -----------------------
 # Load data
@@ -190,20 +203,29 @@ def response_rates_by_pp(df_in):
     tp = df_in[df_in["human_target_present"] == 1]
     ta = df_in[df_in["human_target_present"] == 0]
     hit_pp = (tp.groupby(["participant","speed_px_s_used"], as_index=False)
-                .agg(human_hit=("human_response","mean"), model_hit=("model_p_present","mean")))
+                .agg(human_hit=("human_response","mean"),
+                     model_hit=("model_p_present","mean"),
+                     n_pos=("human_response","size")))
     fa_pp  = (ta.groupby(["participant","speed_px_s_used"], as_index=False)
-                .agg(human_fa=("human_response","mean"),  model_fa=("model_p_present","mean")))
+                .agg(human_fa=("human_response","mean"),
+                     model_fa=("model_p_present","mean"),
+                     n_neg=("human_response","size")))
     return hit_pp, fa_pp
+
+def make_dprime_pp(hit_pp, fa_pp):
+    d = hit_pp.merge(fa_pp, on=["participant","speed_px_s_used"], how="inner")
+    d["human_dprime"] = rates_to_dprime(d["human_hit"], d["n_pos"], d["human_fa"], d["n_neg"])
+    d["model_dprime"] = rates_to_dprime(d["model_hit"], d["n_pos"], d["model_fa"], d["n_neg"])
+    return d
 
 hit_pp, fa_pp = response_rates_by_pp(df)
 acc_pp = accuracy_by_pp(df)
-dprime_pp = hit_pp.merge(fa_pp, on=["participant","speed_px_s_used"], how="inner")
-dprime_pp["human_dprime"] = rates_to_dprime(dprime_pp["human_hit"], dprime_pp["human_fa"])
-dprime_pp["model_dprime"] = rates_to_dprime(dprime_pp["model_hit"], dprime_pp["model_fa"])
+dprime_pp = make_dprime_pp(hit_pp, fa_pp)
 
 
-mode_tag = "replay_model_results_test.csv"  
+mode_tag = "pooled"  
 
+ensure_outdir(OUTDIR)
 dprime_pp.to_csv(f"{OUTDIR}/dprime_pp_{mode_tag}.csv", index=False)
 
 
@@ -287,7 +309,7 @@ for rt_group, tag, panel_label in [
     plot_mean_with_err(ax, x, rt_group["model_rt_mean"], rt_group["model_rt_sem"],
                        color=color, label="Model", marker="^", linestyle="--")
     set_speed_axis(ax)
-    ax.set_ylabel("Reaction time (s)")
+    ax.set_ylabel("Reaction time (s)", fontsize=LABEL_FS)
     ax.set_ylim(1.0, 3.3)
     ax.legend()
     fig.tight_layout()
@@ -296,21 +318,81 @@ for rt_group, tag, panel_label in [
     fig.savefig(f"{OUTDIR}/rt_vs_speed_{safe_tag}.pdf", format="pdf")
     plt.close()
 
-x = speed_display(dprime_group["speed_px_s_used"].values)
+    x = speed_display(dprime_group["speed_px_s_used"].values)
+    fig, ax = plt.subplots(figsize=(7, 5))
+    add_panel_label(ax, "c.")
+    plot_mean_with_err(ax, x, dprime_group["human_dprime_mean"], dprime_group["human_dprime_sem"],
+                       color=COLOR_HUMAN, label="Human")
+    plot_mean_with_err(ax, x, dprime_group["model_dprime_mean"], dprime_group["model_dprime_sem"],
+                       color=COLOR_MODEL, label="Model", linestyle="--")
+    set_speed_axis(ax)
+    ax.set_ylabel("Sensitivity (d')",fontsize=LABEL_FS)   
+    ax.set_ylim(*DPRIME_YLIM)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(f"{OUTDIR}/dprime_vs_speed.png")
+    fig.savefig(f"{OUTDIR}/dprime_vs_speed.pdf", format="pdf")
+    plt.close()
+    print(" - dprime_vs_speed.png")
+    
+# =============================================================
+# HIT RATE and FALSE-ALARM PLOTS
+# =============================================================
+for grp, key, ylabel, fname in [
+    (hit_group, "hit", "Hit rate", "hit_vs_speed"),
+    (fa_group,  "fa",  "False-alarm rate", "fa_vs_speed"),
+]:
+    x = speed_display(grp["speed_px_s_used"].values)
+    fig, ax = plt.subplots(figsize=(7, 5))
+    add_panel_label(ax, "a.")
+    plot_mean_with_err(ax, x, grp[f"human_{key}_mean"], grp[f"human_{key}_sem"],
+                       color=COLOR_HUMAN, label="Human")
+    plot_mean_with_err(ax, x, grp[f"model_{key}_mean"], grp[f"model_{key}_sem"],
+                       color=COLOR_MODEL, label="Model", linestyle="--")
+    set_speed_axis(ax)
+    ax.set_ylabel(ylabel, fontsize=LABEL_FS)
+    if key == "hit":
+        ax.set_ylim(0.5, 1.02)
+    else:
+        top = max((grp[f"human_{key}_mean"] + grp[f"human_{key}_sem"]).max(),
+                  (grp[f"model_{key}_mean"] + grp[f"model_{key}_sem"]).max())
+        ax.set_ylim(0.0, top * 1.25)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(f"{OUTDIR}/{fname}.png")
+    fig.savefig(f"{OUTDIR}/{fname}.pdf", format="pdf")
+    plt.close()
+    print(f" - {fname}.png")
+    
+# =============================================================
+# HITS and FALSE ALARMS IN ONE PLOT
+# =============================================================
+x = speed_display(hit_group["speed_px_s_used"].values)
 fig, ax = plt.subplots(figsize=(7, 5))
-add_panel_label(ax, "")
-plot_mean_with_err(ax, x, dprime_group["human_dprime_mean"], dprime_group["human_dprime_sem"],
-                   color=COLOR_HUMAN, label="Human")
-plot_mean_with_err(ax, x, dprime_group["model_dprime_mean"], dprime_group["model_dprime_sem"],
-                   color=COLOR_MODEL, label="Model", linestyle="--")
+add_panel_label(ax, "d.")
+
+# hits (target-present colour)
+plot_mean_with_err(ax, x, hit_group["human_hit_mean"], hit_group["human_hit_sem"],
+                   color=COLOR_TP, label="Hits, human", marker="o")
+plot_mean_with_err(ax, x, hit_group["model_hit_mean"], hit_group["model_hit_sem"],
+                   color=COLOR_TP, label="Hits, model", marker="^", linestyle="--")
+
+# false alarms (target-absent colour)
+plot_mean_with_err(ax, x, fa_group["human_fa_mean"], fa_group["human_fa_sem"],
+                   color=COLOR_TA, label="False alarms, human", marker="o")
+plot_mean_with_err(ax, x, fa_group["model_fa_mean"], fa_group["model_fa_sem"],
+                   color=COLOR_TA, label="False alarms, model", marker="^", linestyle="--")
+
 set_speed_axis(ax)
-ax.set_ylabel("Sensitivity (d')")
-ax.legend()
+ax.set_ylabel("Response rate", fontsize=LABEL_FS)
+ax.set_ylim(0.0, 1.0)
+ax.legend(ncol=2, fontsize=14, loc="center right")
 fig.tight_layout()
-fig.savefig(f"{OUTDIR}/dprime_vs_speed.png")
-fig.savefig(f"{OUTDIR}/dprime_vs_speed.pdf", format="pdf")
+fig.savefig(f"{OUTDIR}/hit_fa_vs_speed.png")
+fig.savefig(f"{OUTDIR}/hit_fa_vs_speed.pdf", format="pdf")
 plt.close()
-print(" - dprime_vs_speed.png")
+print(" - hit_fa_vs_speed.png")
+
 
 # =============================================================
 # MOSAIC PLOTS
@@ -340,10 +422,10 @@ fig.text(0.01, 0.98, "a.", fontsize=54, fontweight="normal", va="top", ha="left"
 x = speed_display(SPEED_ORDER)
 for i, pp in enumerate(participants):
     ax = axes[i]
-    ax.plot(x, rt_tp_h_w.loc[pp].values, marker="o", linestyle="-", color=COLOR_TP, label="TP Human")
-    ax.plot(x, rt_tp_m_w.loc[pp].values, marker="^", linestyle="--", color=COLOR_TP, label="TP Model")
-    ax.plot(x, rt_ta_h_w.loc[pp].values, marker="o", linestyle="-", color=COLOR_TA, label="TA Human")
-    ax.plot(x, rt_ta_m_w.loc[pp].values, marker="^", linestyle="--", color=COLOR_TA, label="TA Model")
+    ax.plot(x, rt_tp_h_w.loc[pp].values, marker="o", linestyle="-", color=COLOR_TP, label="Target-present Human")
+    ax.plot(x, rt_tp_m_w.loc[pp].values, marker="^", linestyle="--", color=COLOR_TP, label="Target-present Model")
+    ax.plot(x, rt_ta_h_w.loc[pp].values, marker="o", linestyle="-", color=COLOR_TA, label="Target-absent Human")
+    ax.plot(x, rt_ta_m_w.loc[pp].values, marker="^", linestyle="--", color=COLOR_TA, label="Target-absent Model")
     ax.set_title(pp_label(pp))
     ticks, labels = speed_ticks_and_labels()
     ax.set_xticks(ticks)
@@ -362,7 +444,7 @@ for ax in axes[:n_pp]:
 fig.supxlabel(SPEED_LABEL_TEXT, fontsize=54, y=0.01)
 fig.supylabel("Reaction time (s)", fontsize=54, x=0.01)
 fig.subplots_adjust(left=0.1, bottom=0.1, top=0.85, wspace=0.25, hspace=0.35)
-fig.legend(seen.values(), seen.keys(), loc="upper left", ncol=4, fontsize=26,
+fig.legend(seen.values(), seen.keys(), loc="upper left", ncol=2, fontsize=26,
            frameon=False, bbox_to_anchor=(0.08, 0.96))
 fig.savefig(f"{OUTDIR}/individual_fits_mosaic.png", dpi=300)
 fig.savefig(f"{OUTDIR}/individual_fits_mosaic.pdf", format="pdf")
@@ -378,6 +460,7 @@ for i, pp in enumerate(participants):
     ax = axes[i]
     ax.plot(x, dprime_h_w.loc[pp].values, marker="o", linestyle="-", color=COLOR_HUMAN, label="Human")
     ax.plot(x, dprime_m_w.loc[pp].values, marker="^", linestyle="--", color=COLOR_MODEL, label="Model")
+    ax.set_ylim(*DPRIME_YLIM)
     ax.set_title(pp_label(pp))
     ticks, labels = speed_ticks_and_labels()
     ax.set_xticks(ticks)
@@ -404,7 +487,7 @@ print(" - individual_dprime_mosaic.png")
 
 # ---- Plot 5: Fitted parameters -------------
 apply_r_style()
-FIT_CSV = "fitted_params_test.csv"
+FIT_CSV = "fitted_params_kfold_zscore_no-alpha.csv"
 if os.path.exists(FIT_CSV):
     fit = pd.read_csv(FIT_CSV)
     needed_fit = ["participant", "eta", "theta"]
@@ -460,7 +543,7 @@ def add_panel_label(ax, label, fontsize=24, y=1.05):
     
 apply_r_style()
 
-df = pd.read_csv("saccade_prediction_table.csv")
+df = pd.read_csv("saccade_prediction_table_exp1.csv")
 print("Loaded rows:", len(df))
 df = df.copy()
 df = df[np.isfinite(df["margin"])]
@@ -568,15 +651,16 @@ print(" - individual_absdv_saccade_mosaic.png")
 # =============================================================
 apply_r_style()
 
-GAZE_MODES = ["real", "shuffle_time", "random_from_real_hist", "random",
-              "ideal_coverage", "center", "corner_tl"]
+GAZE_MODES = ["real", "random_direction", "shuffle_time", "random_from_real_hist", "random",
+              "ideal_coverage", "center", "corner_tl", ]
 
 GAZE_MODE_LABEL = {
     "real":                  "Recorded gaze",
+    "random_direction":      "Random direction",
     "shuffle_time":          "Shuffled fixations",
     "random_from_real_hist": "Resampled history",
     "random":                "Fully random",
-    "ideal_coverage":        "Coverage-maximizing",
+    "ideal_coverage":        "Ideal coverage",
     "center":                "Constant central",
     "corner_tl":             "Constant peripheral",
 }
@@ -584,10 +668,11 @@ GAZE_MODE_LABEL = {
 # One distinct color per mode
 MODE_COLOR = {
     "real":                   "#F0190A",
+    "random_direction":       "#FCF29B",
     "shuffle_time":           "#B39DDB",
     "random_from_real_hist":  "#93C5EC",
     "random":                 "#58C8D7",
-    "ideal_coverage":         "#80CBC4",
+    "ideal_coverage":         "#7FC482",
     "center":                 "#7984C6",
     "corner_tl":              "#AFBBC1",
 }
@@ -598,13 +683,14 @@ def _rmse(human, model):
     return np.sqrt(np.nanmean((human - model) ** 2))
 
 RAW_FILE_CANDIDATES = {
-    "real":                   ["replay_model_results_real.csv", "replay_model_results.csv"],
-    "shuffle_time":           ["replay_model_results_shuffle_time.csv"],
-    "random_from_real_hist":  ["replay_model_results_random_from_real_hist.csv"],
-    "random":                 ["replay_model_results_random.csv"],
-    "ideal_coverage":         ["replay_model_results_ideal_coverage.csv"],
-    "center":                 ["replay_model_results_center.csv"],
-    "corner_tl":              ["replay_model_results_corner_tl.csv"],
+    "real":                   ["replay_model_results_kfold_zscore_real.csv", "replay_model_results_kfold_zscore_v2.csv"],
+    "random_direction":       ["replay_model_results_kfold_zscore_matched_eccentricity_random_direction.csv"],
+    "shuffle_time":           ["replay_model_results_kfold_zscore_shuffle_time.csv"],
+    "random_from_real_hist":  ["replay_model_results_kfold_zscore_random_from_real_hist.csv"],
+    "random":                 ["replay_model_results_kfold_zscore_random.csv"],
+    "ideal_coverage":         ["replay_model_results_kfold_zscore_ideal_coverage.csv"],
+    "center":                 ["replay_model_results_kfold_zscore_center.csv"],
+    "corner_tl":              ["replay_model_results_kfold_zscore_corner_tl.csv"],
 }
 
 def load_gaze_mode_rmse_from_raw(raw_dir=".", modes=GAZE_MODES):
@@ -641,9 +727,7 @@ def load_gaze_mode_rmse_from_raw(raw_dir=".", modes=GAZE_MODES):
         rt_group_ta_m = rt_groupify(rt_pp_ta_m)
         
         hit_pp_m, fa_pp_m = response_rates_by_pp(df_mode)
-        dprime_pp_m = hit_pp_m.merge(fa_pp_m, on=["participant", "speed_px_s_used"], how="inner")
-        dprime_pp_m["human_dprime"] = rates_to_dprime(dprime_pp_m["human_hit"], dprime_pp_m["human_fa"])
-        dprime_pp_m["model_dprime"] = rates_to_dprime(dprime_pp_m["model_hit"], dprime_pp_m["model_fa"])
+        dprime_pp_m = make_dprime_pp(hit_pp_m, fa_pp_m)
         dprime_group_m = groupify(dprime_pp_m, "human_dprime", "model_dprime", "dprime")
 
         rows.append({
@@ -656,17 +740,15 @@ def load_gaze_mode_rmse_from_raw(raw_dir=".", modes=GAZE_MODES):
     return pd.DataFrame(rows)
 
 gaze_rmse = load_gaze_mode_rmse_from_raw(raw_dir=".")
+if gaze_rmse.empty:
+    print("[WARN] No gaze-mode files found; skipping gaze_mode_comparison.")
+    raise SystemExit(0)
 gaze_rmse.to_csv(f"{OUTDIR}/gaze_mode_rmse_table.csv", index=False)
 
-TITLE_FS = R.BASE_SIZE * 1.05
-LABEL_FS = R.BASE_SIZE * 1.05
-TICK_FS  = R.BASE_SIZE * 0.8
-LEGEND_FS = R.BASE_SIZE * 0.85
-
 fig, axes = plt.subplots(1, 3, figsize=(19, 6.5))
-metric_cols = [("rt_tp_rmse",  "RT RMSE, target-present (s)", "a."),
-               ("rt_ta_rmse",  "RT RMSE, target-absent (s)", "b."),
-               ("dprime_rmse", "Sensitivity (d\u2032) RMSE", "c."),]
+metric_cols = [("rt_tp_rmse",  "RMSE", ""),
+               ("rt_ta_rmse",  "RMSE", ""),
+               ("dprime_rmse", "RMSE", ""),]
 
 for ax, (col, ylabel, panel_label) in zip(axes, metric_cols):
     add_panel_label(ax, panel_label, fontsize=TITLE_FS * 1.1)
