@@ -543,7 +543,7 @@ def add_panel_label(ax, label, fontsize=24, y=1.05):
     
 apply_r_style()
 
-df = pd.read_csv("saccade_prediction_table_exp1.csv")
+df = pd.read_csv("saccade_prediction_table.csv")
 print("Loaded rows:", len(df))
 df = df.copy()
 df = df[np.isfinite(df["margin"])]
