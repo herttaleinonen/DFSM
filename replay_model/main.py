@@ -52,7 +52,7 @@ if __name__ == "__main__":
     VIS_DIR = "data/visibility"
     debug_inventory(SEARCH_DIR, VIS_DIR)
     
-    DO_FIT = False
+    DO_FIT = True
     
     if DO_FIT:
         
