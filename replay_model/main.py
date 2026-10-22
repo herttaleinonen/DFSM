@@ -106,6 +106,7 @@ if __name__ == "__main__":
             max_calib_drift_deg=None,
             dt_override_s=MODEL_SAMPLING_RATE,
             use_group_visibility=False,
+            gaze_mode=GAZE_MODE,      
         )
         
     
