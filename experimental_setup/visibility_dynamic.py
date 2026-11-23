@@ -237,10 +237,10 @@ def run_dynamic_visibility_trials(
     def deg2px(x_deg, y_deg):
         return (x_deg * px_per_deg, y_deg * px_per_deg)
 
-    # ---- Placement: keep the FULL-SIZE gabor on screen along its whole path ----
+    # ---- Placement of the gabor ----
     half_w = screen_width_pix / 2.0
     half_h = screen_height_pix / 2.0
-    gabor_px = float(cell_size)          # constant size, never scaled
+    gabor_px = float(cell_size)          
     gabor_half_px = gabor_px / 2.0
     EDGE_MARGIN_PX = 1.0
     lim_x = half_w - gabor_half_px - EDGE_MARGIN_PX
