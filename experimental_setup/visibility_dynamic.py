@@ -18,7 +18,6 @@ Created on Thu Nov 13 12:34:21 2025
 
 """
 
-
 import os
 import random
 import math
@@ -302,7 +301,7 @@ def run_dynamic_visibility_trials(
         )
         for img in noise_bank
     ]
-    bank_i = 0
+    bank_i = random.randrange(len(noise_frames))
 
     # 50/50 target present/absent schedule
     n_present = int(num_trials) // 2
@@ -564,10 +563,12 @@ def run_dynamic_visibility_trials(
                 y_deg = ecc_actual * math.sin(rad)
 
                 # dynamic noise only here
+                # random frame from the bank at each update (never the same frame twice in a row)
+                if noise_frame_counter % NOISE_FRAME_SKIP == 0:
+                    nxt = random.randrange(len(noise_frames) - 1)
+                    bank_i = nxt if nxt < bank_i else nxt + 1
                 noise_frames[bank_i].draw()
                 noise_frame_counter += 1
-                if noise_frame_counter % NOISE_FRAME_SKIP == 0:
-                    bank_i = (bank_i + 1) % len(noise_frames)
 
                 fixation.draw()
                 gabor.ori = tr['ori']
