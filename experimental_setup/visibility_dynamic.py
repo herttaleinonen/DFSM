@@ -12,10 +12,10 @@ Created on Thu Nov 13 12:34:21 2025
 
     - Dynamic Gaussian noise background during stimulus (gabor/motion window).
     - Static noise during fixation/drift and during response.
-    
     - Eccentricities are: 3, 6, 12, 16, 20 deg.
-    - No eccentricity clamping. Instead, gabor is auto-scaled per trial to prevent clipping.
-    
+    - Motion sweep is set by speed: sweep_rad = speed_px_s * duration / ecc_px.
+      Logged end position / moved angle are the actual last drawn position.
+
 """
 
 
@@ -27,7 +27,6 @@ import numpy as np
 from psychopy import visual, core, event
 
 # =================== USER SETTINGS ===================
-MOVE_ANGLE_DEG = 10.0          # total angular sweep over stimulus (deg of polar angle)
 ROTATION_DIR   = 'random'      # 'ccw', 'cw', or 'random'
 
 EXPERIMENT_SPEED_PX_S = 100.0  # <-- CHANGE THIS PER EXPERIMENT (px/sec)
@@ -237,6 +236,52 @@ def run_dynamic_visibility_trials(
 
     def deg2px(x_deg, y_deg):
         return (x_deg * px_per_deg, y_deg * px_per_deg)
+
+    # ---- Placement: keep the FULL-SIZE gabor on screen along its whole path ----
+    half_w = screen_width_pix / 2.0
+    half_h = screen_height_pix / 2.0
+    gabor_px = float(cell_size)          # constant size, never scaled
+    gabor_half_px = gabor_px / 2.0
+    EDGE_MARGIN_PX = 1.0
+    lim_x = half_w - gabor_half_px - EDGE_MARGIN_PX
+    lim_y = half_h - gabor_half_px - EDGE_MARGIN_PX
+
+    def expected_sweep_deg(ecc_px):
+        # angular distance travelled during the stimulus window (+5% safety margin)
+        if ecc_px <= 1e-6:
+            return 0.0
+        return math.degrees(speed_px_s * stimulus_duration / ecc_px) * 1.05
+
+    def path_fits(angle_start_deg, ecc_px, sweep_deg, sign, n_check=60):
+        for k in range(n_check + 1):
+            a = math.radians(angle_start_deg + sign * sweep_deg * k / n_check)
+            if abs(ecc_px * math.cos(a)) > lim_x or abs(ecc_px * math.sin(a)) > lim_y:
+                return False
+        return True
+
+    def sample_start_angle(ecc_deg, sign, max_tries=20000):
+        ecc_px = ecc_deg * px_per_deg
+        sweep_deg = expected_sweep_deg(ecc_px)
+        for _ in range(max_tries):
+            a0 = random.uniform(0, 360)
+            if path_fits(a0, ecc_px, sweep_deg, sign):
+                return a0
+        return None
+
+    # Feasibility check before the experiment starts
+    for e in distances_deg:
+        e_px = e * px_per_deg
+        sw = expected_sweep_deg(e_px)
+        n_ok = sum(path_fits(a / 2.0, e_px, sw, +1, n_check=20) for a in range(720))
+        frac = n_ok / 720.0
+        print(f"[PLACEMENT] ecc {e:>2} deg: sweep ~{sw:.1f} deg, "
+              f"usable start angles {frac*100:.0f}%")
+        if n_ok == 0:
+            raise ValueError(
+                f"Eccentricity {e} deg cannot fit a {gabor_px:.0f} px gabor on a "
+                f"{screen_width_pix}x{screen_height_pix} screen at {speed_px_s} px/s. "
+                f"Reduce eccentricity or speed."
+            )
 
     # ---- Noise generation ----
     def generate_noise(screen_width, screen_height, grain_size=NOISE_GRAIN):
@@ -475,43 +520,22 @@ def run_dynamic_visibility_trials(
             ecc_intended = float(tr['ecc'])   # 3/6/12/16/20 
             ecc_actual = ecc_intended         # no clamping
 
-            angle_start = random.uniform(0, 360)
             sign = +1 if tr['rot_dir'] == 'ccw' else -1
-            angle_end = (angle_start + sign * MOVE_ANGLE_DEG) % 360
-            moved_angle = abs((angle_end - angle_start + 540) % 360 - 180)
+            angle_start = sample_start_angle(ecc_actual, sign)
+            if angle_start is None:
+                raise RuntimeError(f"Trial {i}: no on-screen start angle for ecc {ecc_actual} deg")
 
             rad_s = math.radians(angle_start)
-            rad_e = math.radians(angle_end)
-
             x_start_deg = ecc_actual * math.cos(rad_s)
             y_start_deg = ecc_actual * math.sin(rad_s)
-            x_end_deg   = ecc_actual * math.cos(rad_e)
-            y_end_deg   = ecc_actual * math.sin(rad_e)
 
-            # ----------------- AUTO-SCALE GABOR TO PREVENT CLIPPING -----------------
             ecc_px = ecc_actual * px_per_deg
-            stim_px_base = float(cell_size)
-            half_stim_px_base = stim_px_base / 2.0
-
-            half_w = screen_width_pix / 2.0
-            half_h = screen_height_pix / 2.0
-
-            cosr = abs(math.cos(rad_s))
-            sinr = abs(math.sin(rad_s))
-            eps = 1e-6
-
-            max_r_x = (half_w - 1) / max(cosr, eps)
-            max_r_y = (half_h - 1) / max(sinr, eps)
-            max_r   = min(max_r_x, max_r_y)
-
-            allowed_half_size_px = max_r - ecc_px
-            allowed_half_size_px = max(allowed_half_size_px, 5.0)
-
-            scale_factor = min(1.0, allowed_half_size_px / half_stim_px_base)
-            stim_px_actual = stim_px_base * scale_factor
-
+            stim_px_actual = gabor_px        # always full size
             gabor.size = stim_px_actual
-            # -----------------------------------------------------------------------
+
+            # updated every frame; hold the actual last drawn position for logging
+            angle_now = angle_start
+            x_deg, y_deg = x_start_deg, y_start_deg
 
             clock = core.Clock()
             if el_tracker:
@@ -566,6 +590,11 @@ def run_dynamic_visibility_trials(
             if el_tracker:
                 el_tracker.sendMessage('stimulus_offset')
                 el_tracker.stopRecording()
+
+            # actual end of path (last drawn frame)
+            angle_end = angle_now
+            x_end_deg, y_end_deg = x_deg, y_deg
+            moved_angle = math.degrees(theta_accum_rad)
 
             static_noise_stim.draw()
             visual.TextStim(win, text='?', height=1, color='black', units='deg').draw()
